@@ -1,8 +1,11 @@
 package org.infinispan.scala
 
 import io.netty.buffer.ByteBuf
+import io.netty.channel.{Channel, ChannelFutureListener, ChannelFuture}
 
 import scala.annotation.tailrec
+import scala.concurrent.{Promise, Future, ExecutionContext}
+import scala.util.{Try, Failure, Success}
 
 package object hotrod {
 
@@ -10,28 +13,118 @@ package object hotrod {
 
   import scala.language.implicitConversions
 
+  implicit def toFuture(channelFuture: ChannelFuture): Future[Channel] = {
+    val promise = Promise[Channel]()
+    channelFuture.addListener(new ChannelFutureListener {
+      def operationComplete(future: ChannelFuture) {
+        if (future.isSuccess ) promise.success(future.channel())
+        else promise.failure(future.cause())
+      }
+    })
+    promise.future
+  }
+
   implicit final class ByteBufOps(val buf: ByteBuf) extends AnyVal {
     def writeVInt(i: Int): ByteBuf = { VInt.write(buf, i); buf }
     def writeVLong(l: Long): ByteBuf = { VLong.write(buf, l); buf }
-
-    def readVInt(): Int = VInt.read(buf)
-    def readVLong(): Long = VLong.read(buf)
-
     def writeRangedBytes(src: Array[Byte]): ByteBuf = {
       writeVInt(src.length)
       if (src.length > 0) buf.writeBytes(src)
       buf
     }
-    def readRangedBytes(): Array[Byte] = {
-      val length = readVInt()
-      if (length > 0) {
-        val array = new Array[Byte](length)
-        buf.readBytes(array)
-        array
+
+    def readMaybeByte(): Option[Byte] = {
+      if (buf.readableBytes() >= 1) {
+        buf.markReaderIndex()
+        Some(buf.readByte()) // Magic
       } else {
-        Array[Byte]()
+        buf.resetReaderIndex()
+        None
       }
     }
+
+    def readMaybeVLong(): Option[Long] = {
+      if (buf.readableBytes() >= 1) {
+        buf.markReaderIndex()
+        val b = buf.readByte
+        @tailrec def read(buf: ByteBuf, b: Byte, shift: Int, i: Long, count: Int): Option[Long] = {
+          if ((b & 0x80) == 0) Some(i)
+          else {
+            if (count > 9)
+              throw new IllegalStateException(
+                "Stream corrupted.  A variable length long cannot be longer than 9 bytes.")
+
+            if (buf.readableBytes() >= 1) {
+              val bb = buf.readByte
+              read(buf, bb, shift + 7, i | (bb & 0x7FL) << shift, count + 1)
+            } else {
+              buf.resetReaderIndex()
+              None
+            }
+          }
+        }
+        read(buf, b, 7, b & 0x7F, 1)
+      } else {
+        buf.resetReaderIndex()
+        None
+      }
+    }
+
+    def readMaybeVInt(): Option[Int] = {
+      if (buf.readableBytes() >= 1) {
+        buf.markReaderIndex()
+        val b = buf.readByte
+        @tailrec def read(buf: ByteBuf, b: Byte, shift: Int, i: Int, count: Int): Option[Int] = {
+          if ((b & 0x80) == 0) Some(i)
+          else {
+            if (count > 5)
+              throw new IllegalStateException(
+                "Stream corrupted.  A variable length integer cannot be longer than 5 bytes.")
+
+            if (buf.readableBytes() >= 1) {
+              val bb = buf.readByte
+              read(buf, bb, shift + 7, i | ((bb & 0x7FL) << shift).toInt, count + 1)
+            } else {
+              buf.resetReaderIndex()
+              None
+            }
+          }
+        }
+        read(buf, b, 7, b & 0x7F, 1)
+      } else {
+        buf.resetReaderIndex()
+        None
+      }
+    }
+
+    def readMaybeRangedBytes(): Option[Bytes] = {
+      for {
+        length <- readMaybeVInt()
+        if buf.readableBytes() >= length
+      } yield {
+        if (length > 0) {
+          val array = new Array[Byte](length)
+          buf.readBytes(array)
+          array
+        } else {
+          Array[Byte]()
+        }
+      }
+    }
+
+    //    def readVInt(): Int = VInt.read(buf)
+//    def readVLong(): Long = VLong.read(buf)
+
+//    def readRangedBytes(): Array[Byte] = {
+//      val length = readVInt()
+//      if (length > 0) {
+//        val array = new Array[Byte](length)
+//        buf.readBytes(array)
+//        array
+//      } else {
+//        Array[Byte]()
+//      }
+//    }
   }
 
   object VInt {
@@ -85,5 +178,26 @@ package object hotrod {
       read(in, b, 7, b & 0x7F, 1)
     }
   }
+
+//  implicit final class ChannelFutureOps(val channelFuture: ChannelFuture) extends AnyVal {
+//    def map[S](f: () => S): Future[S] = {
+//      val p = Promise[S]()
+//      channelFuture.addListener(new ChannelFutureListener {
+//        override def operationComplete(future: ChannelFuture): Unit =
+//          if (future.isSuccess) p.complete(Success(f()))
+//          else p.complete(Failure(future.cause()))
+//      })
+//      p.future
+//    }
+//
+//    def onFailure[U](pf: PartialFunction[Throwable, U])(implicit executor: ExecutionContext) = {
+//      channelFuture.addListener(new ChannelFutureListener {
+//        override def operationComplete(future: ChannelFuture): Unit =
+//          if (!future.isSuccess) {
+//            pf.apply(future.cause())
+//          }
+//      })
+//    }
+//  }
 
 }

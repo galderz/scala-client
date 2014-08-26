@@ -1,7 +1,11 @@
 package org.infinispan.scala.hotrod
 
-sealed abstract class ClientRequest(val code: Code)
+private[hotrod] sealed abstract class ClientRequest(val code: RequestOp, val id: Int)
 
-case class Put[A, B](kv: (A, B)) extends ClientRequest(Codes.Put)
+private[hotrod] object ClientRequests {
+  case class Put[A, B](override val id: Int, kv: (A, B))
+    extends ClientRequest(RequestOps.Put, id)
+  case class Get[A](override val id: Int, k: A)
+    extends ClientRequest(RequestOps.Get, id)
+}
 
-case class Get[A](k: A) extends ClientRequest(Codes.Get)

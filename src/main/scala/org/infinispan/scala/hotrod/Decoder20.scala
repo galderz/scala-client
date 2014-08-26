@@ -6,53 +6,31 @@ import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.ByteToMessageDecoder
 
-import scala.annotation.tailrec
+import scala.annotation.switch
 
-class Decoder20 extends ByteToMessageDecoder {
+private[hotrod] class Decoder20 extends ByteToMessageDecoder {
+
+  val marshaller = new JavaMarshaller
 
   override def decode(ctx: ChannelHandlerContext, in: ByteBuf, out: util.List[AnyRef]): Unit = {
     for {
-      magic <- readFirstByte(in)
-      msgid <- readVLong(in)
-    }
-
-//    if (in.readableBytes() >= 1) {
-//      in.markReaderIndex()
-//      in.readByte() // Magic
-//    }
-  }
-
-  def readFirstByte(in: ByteBuf): Option[Byte] = {
-    if (in.readableBytes() >= 1) {
-      in.markReaderIndex()
-      Some(in.readByte()) // Magic
-    } else None
-  }
-
-  def readVLong(in: ByteBuf): Option[Long] = {
-    if (in.readableBytes() >= 1) {
-      in.markReaderIndex()
-      val b = in.readByte
-      @tailrec def read(in: ByteBuf, b: Byte, shift: Int, i: Long, count: Int): Option[Long] = {
-        if ((b & 0x80) == 0) Some(i)
-        else {
-          if (count > 9)
-            throw new IllegalStateException(
-              "Stream corrupted.  A variable length long cannot be longer than 9 bytes.")
-
-          if (in.readableBytes() >= 1) {
-            val bb = in.readByte
-            read(in, bb, shift + 7, i | (bb & 0x7FL) << shift, count + 1)
-          } else {
-            in.resetReaderIndex()
-            None
-          }
-        }
+      magic <- in.readMaybeByte()
+      id <- in.readMaybeVLong()
+      op <- in.readMaybeByte()
+      status <- in.readMaybeByte()
+      topochange <- in.readMaybeByte()
+    } yield {
+      val respId = id.toInt
+      (op: @switch) match {
+        case ResponseOps.Put.value => out.add(ServerResponses.Put(respId))
+        case ResponseOps.Get.value =>
+          val value =
+            status match {
+              case Constants.NotFound => None
+              case Constants.Success => in.readMaybeRangedBytes().map(marshaller.fromBytes)
+            }
+          out.add(ServerResponses.Get(respId, value))
       }
-      read(in, b, 7, b & 0x7F, 1)
-    } else {
-      in.resetReaderIndex()
-      None
     }
   }
 
