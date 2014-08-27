@@ -1,16 +1,15 @@
 package org.infinispan.scala.hotrod
 
-import java.util.concurrent.atomic.AtomicInteger
+import io.netty.channel.Channel
 
-import io.netty.channel.{Channel, ChannelHandlerContext, SimpleChannelInboundHandler}
-
-import scala.concurrent.{ExecutionContext, Promise, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Success
 
 private[hotrod] class CacheNettyClient[A, B](
     ch: Channel, handler: CacheClientHandler
 ) (implicit ec: ExecutionContext) extends CacheClient[A, B] {
-  import CacheNettyClient._
+  import org.infinispan.scala.hotrod.CacheNettyClient._
 
   @volatile private var stopped = false
 
@@ -24,14 +23,19 @@ private[hotrod] class CacheNettyClient[A, B](
 //  private var currentContext: ChannelHandlerContext = _
 //  private var commandPromise: Promise[ServerResponse] = _
 
-  override def put(kv: (A, B)): Future[Unit] = allowed {
-    val req = ClientRequests.Put(handler.nextId(), kv)
+  override def put(kv: (A, B), lifespan: Duration, maxidle: Duration): Future[Unit] = allowed {
+    val req = ClientRequests.KeyValue(RequestOps.Put, handler.nextId(), kv, lifespan, maxidle)
     handler.write(ch, req).map(_ => ())
   }
 
   override def get(k: A): Future[Option[B]] = allowed {
-    val req = ClientRequests.Get[A](handler.nextId(), k)
-    handler.write(ch, req).map(r => r.asInstanceOf[ServerResponses.Get[B]].v)
+    val req = ClientRequests.Key(RequestOps.Get, handler.nextId(), k)
+    handler.write(ch, req).map(r => r.asInstanceOf[ServerResponses.Value[B]].v)
+  }
+
+  override def remove(k: A): Future[Unit] = allowed {
+    val req = ClientRequests.Key(RequestOps.Remove, handler.nextId(), k)
+    handler.write(ch, req).map(_ => ())
   }
 
   override def stop(): Future[Unit] = {

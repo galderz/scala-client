@@ -37,22 +37,23 @@ object Dependencies {
 
   object Compile {
     import Versions._
-    val netty        = "io.netty"     % "netty-all"                     % "4.0.23.Final"
+    val netty   = "io.netty"               % "netty-all"        % "4.0.23.Final"
 //    val jbmar       = "org.jboss.marshalling" % "jboss-marshalling"         % jbmarVersion
 //    val jbmarRiver  = "org.jboss.marshalling" % "jboss-marshalling-river"   % jbmarVersion
   }
 
   object Test {
     import Versions._
-    val scalatest  = "org.scalatest"  %% "scalatest"                % "2.2.1"      % "test"
-    val ispnhotrod = "org.infinispan" %  "infinispan-server-hotrod" % ispnversion  % "test" classifier "tests" exclude("gnu-getopt", "getopt")
-    val ispncore   = "org.infinispan" %  "infinispan-core"          % ispnversion  % "test" classifier "tests"
-    val log4j      = "log4j"          %  "log4j"                    % "1.2.16"     % "test"
+    val scalatest  = "org.scalatest"          %% "scalatest"                % "2.2.1"      % "test"
+    val ispnhotrod = "org.infinispan"         %  "infinispan-server-hotrod" % ispnversion  % "test" classifier "tests" exclude("gnu-getopt", "getopt")
+    val ispncore   = "org.infinispan"         %  "infinispan-core"          % ispnversion  % "test" classifier "tests"
+    val log4j      = "log4j"                  %  "log4j"                    % "1.2.16"     % "test"
+    val async      = "org.scala-lang.modules" %% "scala-async"              % "0.9.2"      % "test"
   }
 
   import Compile._
 
-  val test = List(Test.scalatest, Test.ispnhotrod, Test.ispncore, Test.log4j)
+  val test = List(Test.scalatest, Test.ispnhotrod, Test.ispncore, Test.log4j, Test.async)
 
   val all = List(netty) ::: test
 

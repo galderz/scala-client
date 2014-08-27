@@ -12,3 +12,17 @@ private[hotrod] object Constants {
   // Client intelligence
   val ClientBasic = 0x01
 }
+
+// Client request codes
+object RequestOps {
+  final val Put = 0x01
+  final val Get = 0x03
+  final val Remove = 0x0B
+}
+
+// Server response codes
+object ResponseOps {
+  final val Put = 0x02
+  final val Get = 0x04
+  final val Remove = 0x0C
+}

@@ -1,11 +1,14 @@
 package org.infinispan.scala.hotrod
 
+import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.postfixOps
 
 trait CacheClient[A, B] {
 
-  def put(kv: (A, B)): Future[Unit]
+  def put(kv: (A, B), lifespan: Duration = 0.seconds, maxidle: Duration = 0.seconds): Future[Unit]
   def get(k: A): Future[Option[B]]
+  def remove(k: A): Future[Unit]
 
   def stop(): Future[Unit]
 
