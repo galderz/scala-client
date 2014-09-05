@@ -6,9 +6,17 @@ import scala.language.postfixOps
 
 trait CacheClient[A, B] {
 
+  // CRUD operations //
+
   def put(kv: (A, B), lifespan: Duration = 0.seconds, maxidle: Duration = 0.seconds): Future[Unit]
   def get(k: A): Future[Option[B]]
   def remove(k: A): Future[Unit]
+
+  // Conditional operations //
+
+  def putIfAbsent(kv: (A, B), lifespan: Duration = 0.seconds, maxidle: Duration = 0.seconds): Future[Boolean]
+
+  // Lifecycle
 
   def stop(): Future[Unit]
 

@@ -24,13 +24,18 @@ private[hotrod] class Decoder20 extends ByteToMessageDecoder {
       (op: @switch) match {
         case ResponseOps.Put => out.add(ServerResponses.Empty(respId))
         case ResponseOps.Get =>
-          val value =
-            status match {
-              case Constants.NotFound => None
-              case Constants.Success => in.readMaybeRangedBytes().map(marshaller.fromBytes)
-            }
+          val value = status match {
+            case Constants.NotFound => None
+            case Constants.Success => in.readMaybeRangedBytes().map(marshaller.fromBytes)
+          }
           out.add(ServerResponses.Value(respId, value))
         case ResponseOps.Remove => out.add(ServerResponses.Empty(respId))
+        case ResponseOps.PutIfAbsent =>
+          val success = status match {
+            case Constants.Success => true
+            case Constants.NotApplied => false
+          }
+        out.add(ServerResponses.Maybe(respId, success))
         case _ =>
       }
     }

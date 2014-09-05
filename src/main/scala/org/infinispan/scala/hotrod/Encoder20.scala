@@ -36,7 +36,7 @@ private[hotrod] class Encoder20 extends MessageToByteEncoder[ClientRequest] {
       .writeByte(Constants.Req) // Magic
       .writeVLong(msg.id) // Message ID
       .writeByte(Constants.V20) // Version
-      .writeByte(msg.code.value) // Operation code
+      .writeByte(msg.code.toByte) // Operation code
       .writeByte(0) // Cache name length
       .writeVInt(0) // Flags
       .writeByte(Constants.ClientBasic) // Client intelligence
@@ -53,7 +53,7 @@ private[hotrod] class Encoder20 extends MessageToByteEncoder[ClientRequest] {
       .writeByte(Constants.Req) // Magic
       .writeVLong(msg.id) // Message ID
       .writeByte(Constants.V20) // Version
-      .writeByte(msg.code.value) // Operation code
+      .writeByte(msg.code.toByte) // Operation code
       .writeByte(0) // Cache name length
       .writeVInt(0) // Flags
       .writeByte(Constants.ClientBasic) // Client intelligence

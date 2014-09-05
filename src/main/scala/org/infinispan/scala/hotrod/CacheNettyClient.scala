@@ -1,6 +1,7 @@
 package org.infinispan.scala.hotrod
 
 import io.netty.channel.Channel
+import org.infinispan.scala.hotrod.ServerResponses._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -13,29 +14,24 @@ private[hotrod] class CacheNettyClient[A, B](
 
   @volatile private var stopped = false
 
-//  private val netty = Netty(this)
-//  private val id = new AtomicInteger()
-//  private val promises = new Array[Promise[ServerResponse]](IdRingSize)
-
-//  private val connectPromise = Promise[CacheClient]()
-//  private var disconnectFuture: Future[CacheClient] = _
-//
-//  private var currentContext: ChannelHandlerContext = _
-//  private var commandPromise: Promise[ServerResponse] = _
-
   override def put(kv: (A, B), lifespan: Duration, maxidle: Duration): Future[Unit] = allowed {
     val req = ClientRequests.KeyValue(RequestOps.Put, handler.nextId(), kv, lifespan, maxidle)
-    handler.write(ch, req).map(_ => ())
+    handler.write[Empty](ch, req).map(_ => ())
   }
 
   override def get(k: A): Future[Option[B]] = allowed {
     val req = ClientRequests.Key(RequestOps.Get, handler.nextId(), k)
-    handler.write(ch, req).map(r => r.asInstanceOf[ServerResponses.Value[B]].v)
+    handler.write[Value[B]](ch, req).map(r => r.v)
   }
 
   override def remove(k: A): Future[Unit] = allowed {
     val req = ClientRequests.Key(RequestOps.Remove, handler.nextId(), k)
-    handler.write(ch, req).map(_ => ())
+    handler.write[Empty](ch, req).map(_ => ())
+  }
+
+  override def putIfAbsent(kv: (A, B), lifespan: Duration, maxidle: Duration): Future[Boolean] = allowed {
+    val req = ClientRequests.KeyValue(RequestOps.PutIfAbsent, handler.nextId(), kv, lifespan, maxidle)
+    handler.write[Maybe](ch, req).map(_.success)
   }
 
   override def stop(): Future[Unit] = {
@@ -55,54 +51,6 @@ private[hotrod] class CacheNettyClient[A, B](
     }
   }
 
-
-  //  private def write(request: ClientRequest): Future[ServerResponse] = {
-//
-//
-////    promises()
-////
-////    // TODO: Synchronized not needed - keep track of id <-> request/response (maybe an indexed array?)
-////    this.synchronized {
-////      if (this.commandPromise != null)
-////        throw new BusyClientException
-////
-////      val result = Promise[ServerResponse]()
-////
-////      this.currentContext.writeAndFlush(request).onFailure {
-////        case e: Throwable => result.tryFailure(e)
-////      }
-////
-////      this.commandPromise = result
-////      this.commandPromise.future
-////    }
-//    null
-//  }
-//
-//  override def channelRead0(ctx: ChannelHandlerContext, msg: ServerResponse): Unit = {
-//    promises(msg.msgid.toInt).complete(Success(msg))
-//  }
-//
-//
-////  def connect(): Future[CacheClient] = {
-////    netty.connect(host, port).onFailure {
-////      case e : Throwable => connectPromise.failure(e)
-////    }
-////
-////    connectPromise.future
-////  }
-////
-////  def close(): Future[CacheClient] = {
-////    if (currentContext != null && currentContext.channel().isActive && disconnectFuture == null) {
-////      this.disconnectFuture = this.currentContext.close().map(v => this)
-////    }
-////
-////    if (disconnectFuture == null) {
-////      Promise.successful[CacheClient](this).future
-////    } else {
-////      disconnectFuture
-////    }
-////  }
-//  override def channelActive(ctx: ChannelHandlerContext): Unit = super.channelActive(ctx)
 }
 
 private[hotrod] object CacheNettyClient {
