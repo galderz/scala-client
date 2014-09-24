@@ -1,6 +1,6 @@
-package org.infinispan.scala.hotrod
+package org.infinispan.scala.hotrod.impl
 
-private[hotrod] object Constants {
+private[impl] object Constants {
   // Magic
   val Req = 0xA0
   val Res = 0xA1
@@ -14,10 +14,10 @@ private[hotrod] object Constants {
   val ClientBasic = 0x01
 }
 
-case class Id(id: Int) extends AnyVal
+private[impl] case class Id(id: Int) extends AnyVal
 
 // Client request codes
-object RequestIds {
+private[impl] object RequestIds {
   final val Put = Id(0x01)
   final val Get = Id(0x03)
   final val PutIfAbsent = Id(0x05)
@@ -25,7 +25,7 @@ object RequestIds {
 }
 
 // Server response codes
-object ResponseIds {
+private[impl] object ResponseIds {
   final val Put = 0x02
   final val Get = 0x04
   final val PutIfAbsent = 0x06

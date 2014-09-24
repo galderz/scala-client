@@ -2,9 +2,6 @@ package org.infinispan.scala.hotrod
 
 import org.infinispan.scala.hotrod.testkit._
 
-import scala.concurrent.duration._
-import scala.language.postfixOps
-
 class LocalSpec extends TestKit[Int, String] {
 
   test("Cache client can do a put/get/remove cycle on a single key") {

@@ -1,11 +1,11 @@
-package org.infinispan.scala.hotrod
+package org.infinispan.scala.hotrod.impl
 
 import io.netty.bootstrap.Bootstrap
-import io.netty.channel.{Channel, ChannelInitializer, ChannelOption, ChannelHandler}
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.channel.{Channel, ChannelHandler, ChannelInitializer, ChannelOption}
 
-private[hotrod] object Netty {
+private[impl] object Netty {
 
   val DefaultEventLoopGroup = new NioEventLoopGroup()
 

@@ -1,4 +1,4 @@
-package org.infinispan.scala.hotrod
+package org.infinispan.scala.hotrod.impl
 
 import java.util
 
@@ -8,7 +8,7 @@ import io.netty.handler.codec.ByteToMessageDecoder
 
 import scala.annotation.switch
 
-private[hotrod] class Decoder20 extends ByteToMessageDecoder {
+private[impl] class Decoder20 extends ByteToMessageDecoder {
 
   val marshaller = new JavaMarshaller
 

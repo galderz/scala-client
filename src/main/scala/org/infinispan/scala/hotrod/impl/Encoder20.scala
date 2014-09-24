@@ -1,10 +1,11 @@
-package org.infinispan.scala.hotrod
+package org.infinispan.scala.hotrod.impl
 
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.MessageToByteEncoder
+import org.infinispan.scala.hotrod.{Lifespan, MaxIdle}
 
-private[hotrod] class Encoder20 extends MessageToByteEncoder[ClientRequest] {
+private[impl] class Encoder20 extends MessageToByteEncoder[ClientRequest] {
 
   val marshaller = new JavaMarshaller
 

@@ -1,5 +1,7 @@
 package org.infinispan.scala.hotrod
 
+import org.infinispan.scala.hotrod.impl.CacheNettyClient
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
@@ -22,6 +24,8 @@ trait CacheClient[A, B] {
 }
 
 object CacheClient {
+
+  class StoppedException() extends IllegalStateException("Stopped, no further operations allowed")
 
   def apply[A, B](host: String = "localhost", port: Int = 11222)
        (implicit ec: ExecutionContext): Future[CacheClient[A, B]] = {

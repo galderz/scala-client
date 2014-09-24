@@ -1,15 +1,15 @@
-package org.infinispan.scala.hotrod
+package org.infinispan.scala.hotrod.impl
 
 import java.util.concurrent.atomic.AtomicInteger
 
 import io.netty.channel.{Channel, ChannelHandlerContext, SimpleChannelInboundHandler}
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Promise, Future}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Success
 
-class CacheClientHandler extends SimpleChannelInboundHandler[ServerResponse] {
-  import CacheClientHandler._
+private[impl] class CacheClientHandler extends SimpleChannelInboundHandler[ServerResponse] {
+  import org.infinispan.scala.hotrod.impl.CacheClientHandler._
 
   private val id = new AtomicInteger()
   private val promises = new mutable.ArraySeq[Promise[_ <: ServerResponse]](IdRingSize)
@@ -35,6 +35,6 @@ class CacheClientHandler extends SimpleChannelInboundHandler[ServerResponse] {
 
 }
 
-object CacheClientHandler {
+private[impl] object CacheClientHandler {
   val IdRingSize = 128
 }

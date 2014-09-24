@@ -1,16 +1,16 @@
-package org.infinispan.scala.hotrod
+package org.infinispan.scala.hotrod.impl
 
 import io.netty.channel.Channel
-import org.infinispan.scala.hotrod.ServerResponses._
+import org.infinispan.scala.hotrod.CacheClient.StoppedException
+import org.infinispan.scala.hotrod._
+import org.infinispan.scala.hotrod.impl.ServerResponses._
 
-import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Success
 
-private[hotrod] class CacheNettyClient[A, B](
+private[impl] class CacheNettyClient[A, B](
     ch: Channel, handler: CacheClientHandler
 ) (implicit ec: ExecutionContext) extends CacheClient[A, B] {
-  import org.infinispan.scala.hotrod.CacheNettyClient._
 
   @volatile private var stopped = false
 
@@ -55,8 +55,6 @@ private[hotrod] class CacheNettyClient[A, B](
 
 private[hotrod] object CacheNettyClient {
   val IdRingSize = 128
-
-  class StoppedException() extends IllegalStateException("Stopped, no further operations allowed")
 
   def apply[A, B](host: String, port: Int)(implicit ec: ExecutionContext): Future[CacheNettyClient[A, B]] = {
     val handler = new CacheClientHandler()

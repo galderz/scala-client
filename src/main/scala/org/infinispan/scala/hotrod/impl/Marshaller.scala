@@ -1,13 +1,15 @@
-package org.infinispan.scala.hotrod
+package org.infinispan.scala.hotrod.impl
 
-import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 
-private[hotrod] trait Marshaller {
+import org.infinispan.scala.hotrod._
+
+private[impl] trait Marshaller {
   def toBytes(o: Any): Bytes
   def fromBytes(b: Bytes): Any
 }
 
-private[hotrod] class JavaMarshaller extends Marshaller {
+private[impl] class JavaMarshaller extends Marshaller {
   override def toBytes(o: Any): Bytes = {
     val bos = new ByteArrayOutputStream
     val out = new ObjectOutputStream(bos)
