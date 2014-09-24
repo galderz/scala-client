@@ -14,9 +14,11 @@ trait CacheClient[A, B] {
 
 //  // Return previous operations //
 //  def getAndPut(kv: (A, B))(implicit ctx: Context = Context.empty): Future[B]
+//  def getAndReplace(kv: (A, B))(implicit ctx: Context = Context.empty): Future[B]
 
   // Conditional operations //
   def putIfAbsent(kv: (A, B))(implicit ctx: Context = Context.empty): Future[Boolean]
+  def replace(kv: (A, B))(implicit ctx: Context = Context.empty): Future[Boolean]
 
   // Lifecycle //
   def stop(): Future[Unit]

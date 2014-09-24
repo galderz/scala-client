@@ -35,4 +35,25 @@ class LocalSpec extends TestKit[Int, String] {
     }
   }
 
+  test("Cache client can do a replace") {
+    await {
+      for {
+        ret1 <- client.replace(1 -> "v1")
+        v <- client.get(1)
+        ret2 <- client.putIfAbsent(1 -> "v2")
+        v2 <- client.get(1)
+        ret3 <- client.replace(1 -> "v3")
+        v3 <- client.get(1)
+        () <- client.remove(1)
+      } yield {
+        ret1 shouldBe false
+        v shouldBe None
+        ret2 shouldBe true
+        v2 shouldBe Some("v2")
+        ret3 shouldBe true
+        v3 shouldBe Some("v3")
+      }
+    }
+  }
+
 }

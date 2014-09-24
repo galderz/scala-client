@@ -34,6 +34,11 @@ private[impl] class CacheNettyClient[A, B](
     handler.write[Maybe](ch, req).map(_.success)
   }
 
+  override def replace(kv: (A, B))(implicit ctx: Context = Context.empty): Future[Boolean] = allowed {
+    val req = ClientRequests.KeyValue(handler.nextId(), RequestIds.Replace, kv, ctx)
+    handler.write[Maybe](ch, req).map(_.success)
+  }
+
   override def stop(): Future[Unit] = {
     stopped = true
     val p = Promise[Unit]()
