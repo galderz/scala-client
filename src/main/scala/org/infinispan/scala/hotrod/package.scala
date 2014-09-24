@@ -1,17 +1,24 @@
 package org.infinispan.scala
 
 import io.netty.buffer.ByteBuf
-import io.netty.channel.{Channel, ChannelFutureListener, ChannelFuture}
+import io.netty.channel.{Channel, ChannelFuture, ChannelFutureListener}
 
 import scala.annotation.tailrec
-import scala.concurrent.{Promise, Future, ExecutionContext}
-import scala.util.{Try, Failure, Success}
+import scala.concurrent.{Future, Promise}
 
 package object hotrod {
 
   type Bytes = Array[Byte]
 
   import scala.language.implicitConversions
+
+  implicit object ExpiryLifespan extends Param[Lifespan] {
+    val default = Lifespan(Never)
+  }
+
+  implicit object ExpiryMaxIdle extends Param[MaxIdle] {
+    val default = MaxIdle(Never)
+  }
 
   implicit def toFuture(channelFuture: ChannelFuture): Future[Channel] = {
     val promise = Promise[Channel]()
@@ -111,20 +118,6 @@ package object hotrod {
         }
       }
     }
-
-    //    def readVInt(): Int = VInt.read(buf)
-//    def readVLong(): Long = VLong.read(buf)
-
-//    def readRangedBytes(): Array[Byte] = {
-//      val length = readVInt()
-//      if (length > 0) {
-//        val array = new Array[Byte](length)
-//        buf.readBytes(array)
-//        array
-//      } else {
-//        Array[Byte]()
-//      }
-//    }
   }
 
   object VInt {

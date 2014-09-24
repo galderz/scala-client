@@ -15,12 +15,9 @@ package object testkit {
   implicit final class FutureTestOps[+A](val fut: Future[A]) {
     def await(implicit d: Duration = 3.second): A = Await.result(fut, d * timefactor)
     def ready(implicit d: Duration = 3.second): Future[A] = Await.ready(fut, d * timefactor)
-//    def await[](in: => Future[T], out: => Future[T], duration: Duration): A = {
-//      until(duration)(in)
-//      until(duration * 2)(delay(duration))
-//      until(duration)(out)
-//    }
   }
+
+  def await[T](f: Future[T])(implicit d: Duration = 3.second): T = f.await(d)
 
   implicit class FutureCompanionOps[T](val f: Future.type) {
     def delay(t: Duration): Future[Unit] = Async.async {
@@ -34,26 +31,5 @@ package object testkit {
       }
     }
   }
-
-
-//  def until[T](duration: Duration = 1.seconds)(f: Future[T]): T =
-//    Await.result(f, duration * timefactor)
-
-//  def until[T](in: => Future[T], out: => Future[T], duration: Duration): T = {
-//    until(duration)(in)
-//    until(duration * 2)(delay(duration))
-//    until(duration)(out)
-//  }
-
-//  def delay(t: Duration): Future[Unit] = async {
-//    await[Unit] {
-//      val p = Promise[Unit]()
-//      blocking {
-//        Thread.sleep(t.toMillis)
-//        p.complete(Success())
-//      }
-//      p.future
-//    }
-//  }
 
 }

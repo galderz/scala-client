@@ -37,7 +37,8 @@ object Dependencies {
 
   object Compile {
     import Versions._
-    val netty   = "io.netty"               % "netty-all"        % "4.0.23.Final"
+    val netty         = "io.netty"               % "netty-all"        % "4.0.23.Final"
+    val nscalatime    = ""
 //    val jbmar       = "org.jboss.marshalling" % "jboss-marshalling"         % jbmarVersion
 //    val jbmarRiver  = "org.jboss.marshalling" % "jboss-marshalling-river"   % jbmarVersion
   }

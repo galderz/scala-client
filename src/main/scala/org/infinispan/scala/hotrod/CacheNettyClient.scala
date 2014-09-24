@@ -14,23 +14,23 @@ private[hotrod] class CacheNettyClient[A, B](
 
   @volatile private var stopped = false
 
-  override def put(kv: (A, B), lifespan: Duration, maxidle: Duration): Future[Unit] = allowed {
-    val req = ClientRequests.KeyValue(RequestOps.Put, handler.nextId(), kv, lifespan, maxidle)
+  override def put(kv: (A, B))(implicit ctx: Context): Future[Unit] = allowed {
+    val req = ClientRequests.KeyValue(handler.nextId(), RequestIds.Put, kv, ctx)
     handler.write[Empty](ch, req).map(_ => ())
   }
 
   override def get(k: A): Future[Option[B]] = allowed {
-    val req = ClientRequests.Key(RequestOps.Get, handler.nextId(), k)
+    val req = ClientRequests.Key(handler.nextId(), RequestIds.Get, k)
     handler.write[Value[B]](ch, req).map(r => r.v)
   }
 
   override def remove(k: A): Future[Unit] = allowed {
-    val req = ClientRequests.Key(RequestOps.Remove, handler.nextId(), k)
+    val req = ClientRequests.Key(handler.nextId(), RequestIds.Remove, k)
     handler.write[Empty](ch, req).map(_ => ())
   }
 
-  override def putIfAbsent(kv: (A, B), lifespan: Duration, maxidle: Duration): Future[Boolean] = allowed {
-    val req = ClientRequests.KeyValue(RequestOps.PutIfAbsent, handler.nextId(), kv, lifespan, maxidle)
+  override def putIfAbsent(kv: (A, B))(implicit ctx: Context): Future[Boolean] = allowed {
+    val req = ClientRequests.KeyValue(handler.nextId(), RequestIds.PutIfAbsent, kv, ctx)
     handler.write[Maybe](ch, req).map(_.success)
   }
 

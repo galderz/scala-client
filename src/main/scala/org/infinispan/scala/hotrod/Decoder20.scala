@@ -22,15 +22,15 @@ private[hotrod] class Decoder20 extends ByteToMessageDecoder {
     } yield {
       val respId = id.toInt
       (op: @switch) match {
-        case ResponseOps.Put => out.add(ServerResponses.Empty(respId))
-        case ResponseOps.Get =>
+        case ResponseIds.Put => out.add(ServerResponses.Empty(respId))
+        case ResponseIds.Get =>
           val value = status match {
             case Constants.NotFound => None
             case Constants.Success => in.readMaybeRangedBytes().map(marshaller.fromBytes)
           }
           out.add(ServerResponses.Value(respId, value))
-        case ResponseOps.Remove => out.add(ServerResponses.Empty(respId))
-        case ResponseOps.PutIfAbsent =>
+        case ResponseIds.Remove => out.add(ServerResponses.Empty(respId))
+        case ResponseIds.PutIfAbsent =>
           val success = status match {
             case Constants.Success => true
             case Constants.NotApplied => false
