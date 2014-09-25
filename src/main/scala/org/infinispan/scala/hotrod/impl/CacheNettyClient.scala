@@ -24,6 +24,11 @@ private[impl] class CacheNettyClient[A, B](
     handler.write[Value[B]](ch, req).map(r => r.v)
   }
 
+  def containsKey(k: A): Future[Boolean] = {
+    val req = ClientRequests.Key(handler.nextId(), RequestIds.ContainsKey, k)
+    handler.write[Maybe](ch, req).map(r => r.success)
+  }
+
   override def remove(k: A): Future[Unit] = allowed {
     val req = ClientRequests.Key(handler.nextId(), RequestIds.Remove, k)
     handler.write[Empty](ch, req).map(_ => ())

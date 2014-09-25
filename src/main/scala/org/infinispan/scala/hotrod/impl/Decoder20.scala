@@ -29,13 +29,19 @@ private[impl] class Decoder20 extends ByteToMessageDecoder {
             case Constants.Success => in.readMaybeRangedBytes().map(marshaller.fromBytes)
           }
           out.add(ServerResponses.Value(respId, value))
+        case ResponseIds.ContainsKey =>
+          val success = status match {
+            case Constants.Success => true
+            case Constants.NotFound => false
+          }
+          out.add(ServerResponses.Maybe(respId, success))
         case ResponseIds.Remove => out.add(ServerResponses.Empty(respId))
         case ResponseIds.PutIfAbsent | ResponseIds.Replace =>
           val success = status match {
             case Constants.Success => true
             case Constants.NotApplied => false
           }
-        out.add(ServerResponses.Maybe(respId, success))
+          out.add(ServerResponses.Maybe(respId, success))
         case _ =>
       }
     }

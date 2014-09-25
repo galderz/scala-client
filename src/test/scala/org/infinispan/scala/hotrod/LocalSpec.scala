@@ -18,7 +18,7 @@ class LocalSpec extends TestKit[Int, String] {
     }
   }
 
-  test("Cache client can do a putIfAbsent") {
+  test("Cache client can put a key if absent") {
     await {
       for {
         ret1 <- client.putIfAbsent(1 -> "v1")
@@ -35,7 +35,7 @@ class LocalSpec extends TestKit[Int, String] {
     }
   }
 
-  test("Cache client can do a replace") {
+  test("Cache client can replace a key") {
     await {
       for {
         ret1 <- client.replace(1 -> "v1")
@@ -52,6 +52,20 @@ class LocalSpec extends TestKit[Int, String] {
         v2 shouldBe Some("v2")
         ret3 shouldBe true
         v3 shouldBe Some("v3")
+      }
+    }
+  }
+
+  test("Cache client can check if key is present") {
+    await {
+      for {
+        b <- client.containsKey(1)
+        () <- client.put(1 -> "v1")
+        b2 <- client.containsKey(1)
+        () <- client.remove(1)
+      } yield {
+        b shouldBe false
+        b2 shouldBe true
       }
     }
   }
