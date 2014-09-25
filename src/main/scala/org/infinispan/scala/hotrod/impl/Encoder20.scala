@@ -14,6 +14,7 @@ private[impl] class Encoder20 extends MessageToByteEncoder[ClientRequest] {
     msg match {
       case kv: ClientRequests.KeyValue => encodeKeyValue(out, kv)
       case k: ClientRequests.Key => encodeKey(out, k)
+      case kvv: ClientRequests.KeyValueVersion => encodeKeyValueVersion(out, kvv)
     }
   }
 
@@ -47,6 +48,25 @@ private[impl] class Encoder20 extends MessageToByteEncoder[ClientRequest] {
       .writeByte(Constants.ClientBasic) // Client intelligence
       .writeVInt(0) // Topology ID
       .writeRangedBytes(k) // Key length + Key
+  }
+
+  private def encodeKeyValueVersion(buf: ByteBuf, msg: ClientRequests.KeyValueVersion): Unit = {
+    val k = marshaller.toBytes(msg.kv._1)
+    val v = marshaller.toBytes(msg.kv._2)
+    buf
+      .writeByte(Constants.Req) // Magic
+      .writeVLong(msg.id) // Message ID
+      .writeByte(Constants.V20) // Version
+      .writeByte(msg.code.id) // Operation code
+      .writeByte(0) // Cache name length
+      .writeVInt(0) // Flags
+      .writeByte(Constants.ClientBasic) // Client intelligence
+      .writeVInt(0) // Topology ID
+      .writeRangedBytes(k) // Key length + Key
+      .writeVInt(msg.ctx[Lifespan].expiry.toSeconds) // Lifespan
+      .writeVInt(msg.ctx[MaxIdle].expiry.toSeconds) // Max Idle
+      .writeLong(msg.v.version) // Version
+      .writeRangedBytes(v) // Value length + Value
   }
 
 }

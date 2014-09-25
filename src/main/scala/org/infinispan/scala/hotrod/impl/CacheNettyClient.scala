@@ -24,9 +24,14 @@ private[impl] class CacheNettyClient[A, B](
     handler.write[Value[B]](ch, req).map(r => r.v)
   }
 
-  def containsKey(k: A): Future[Boolean] = {
+  def contains(k: A): Future[Boolean] = {
     val req = ClientRequests.Key(handler.nextId(), RequestIds.ContainsKey, k)
     handler.write[Maybe](ch, req).map(r => r.success)
+  }
+
+  def versioned(k: A): Future[Option[Versioned[B]]] = {
+    val req = ClientRequests.Key(handler.nextId(), RequestIds.GetWithVersion, k)
+    handler.write[VersionedValue[B]](ch, req).map(r => r.v)
   }
 
   override def remove(k: A): Future[Unit] = allowed {
@@ -41,6 +46,11 @@ private[impl] class CacheNettyClient[A, B](
 
   override def replace(kv: (A, B))(implicit ctx: Context = Context.empty): Future[Boolean] = allowed {
     val req = ClientRequests.KeyValue(handler.nextId(), RequestIds.Replace, kv, ctx)
+    handler.write[Maybe](ch, req).map(_.success)
+  }
+
+  override def replaceVersioned(kv: (A, B), v: EntryVersion)(implicit ctx: Context = Context.empty): Future[Boolean] = allowed {
+    val req = ClientRequests.KeyValueVersion(handler.nextId(), RequestIds.ReplaceVersioned, kv, v, ctx)
     handler.write[Maybe](ch, req).map(_.success)
   }
 

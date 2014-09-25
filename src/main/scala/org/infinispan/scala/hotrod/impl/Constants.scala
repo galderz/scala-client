@@ -22,8 +22,10 @@ private[impl] object RequestIds {
   final val Get = Id(0x03)
   final val PutIfAbsent = Id(0x05)
   final val Replace = Id(0x07)
+  final val ReplaceVersioned = Id(0x09)
   final val Remove = Id(0x0B)
   final val ContainsKey = Id(0x0F)
+  final val GetWithVersion = Id(0x11)
 }
 
 // Server response codes
@@ -33,7 +35,9 @@ private[impl] object ResponseIds {
   final val Get = 0x04
   final val PutIfAbsent = 0x06
   final val Replace = 0x08
+  final val ReplaceVersioned = 0x0A
   final val Remove = 0x0C
   final val ContainsKey = 0x10
+  final val GetWithVersion = 0x12
 //  final val Error = 0x50
 }

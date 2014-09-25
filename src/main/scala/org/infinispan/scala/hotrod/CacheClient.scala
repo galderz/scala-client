@@ -7,11 +7,15 @@ import scala.language.postfixOps
 
 trait CacheClient[A, B] {
 
+  // TODO: Move contents to separate traits...
+
   // CRUD operations //
   def put(kv: (A, B))(implicit ctx: Context = Context.empty): Future[Unit]
   def get(k: A): Future[Option[B]]
-  def containsKey(k: A): Future[Boolean]
   def remove(k: A): Future[Unit]
+
+  def contains(k: A): Future[Boolean]
+  def versioned(k: A): Future[Option[Versioned[B]]]
 
 //  // Return previous operations //
 //  def getAndPut(kv: (A, B))(implicit ctx: Context = Context.empty): Future[B]
@@ -21,6 +25,7 @@ trait CacheClient[A, B] {
   // Conditional operations //
   def putIfAbsent(kv: (A, B))(implicit ctx: Context = Context.empty): Future[Boolean]
   def replace(kv: (A, B))(implicit ctx: Context = Context.empty): Future[Boolean]
+  def replaceVersioned(kv: (A, B), v: EntryVersion)(implicit ctx: Context = Context.empty): Future[Boolean]
 
   // Lifecycle //
   def stop(): Future[Unit]
