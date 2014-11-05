@@ -27,6 +27,9 @@ package object impl {
       if (src.length > 0) buf.writeBytes(src)
       buf
     }
+    def writeMaybeVersion(version: Version): ByteBuf = {
+      version.version.map(buf.writeLong); buf
+    }
 
     def readMaybeByte(): Option[Byte] = {
       if (buf.readableBytes() >= 1) {

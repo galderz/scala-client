@@ -1,11 +1,5 @@
 package org.infinispan.scala
 
-import io.netty.buffer.ByteBuf
-import io.netty.channel.{Channel, ChannelFuture, ChannelFutureListener}
-
-import scala.annotation.tailrec
-import scala.concurrent.{Future, Promise}
-
 package object hotrod {
 
   type Bytes = Array[Byte]
@@ -18,6 +12,10 @@ package object hotrod {
 
   implicit object ExpiryMaxIdle extends Param[MaxIdle] {
     val default = MaxIdle(Never)
+  }
+
+  implicit object EntryVersion extends Param[Version] {
+    val default = Version(None)
   }
 
 }

@@ -24,6 +24,7 @@ private[impl] object RequestIds {
   final val Replace = Id(0x07)
   final val ReplaceVersioned = Id(0x09)
   final val Remove = Id(0x0B)
+  final val RemoveVersioned = Id(0x0D)
   final val ContainsKey = Id(0x0F)
   final val GetWithVersion = Id(0x11)
 }
@@ -37,6 +38,7 @@ private[impl] object ResponseIds {
   final val Replace = 0x08
   final val ReplaceVersioned = 0x0A
   final val Remove = 0x0C
+  final val RemoveVersioned = 0x0E
   final val ContainsKey = 0x10
   final val GetWithVersion = 0x12
 //  final val Error = 0x50

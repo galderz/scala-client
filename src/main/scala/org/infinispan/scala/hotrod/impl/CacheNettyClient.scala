@@ -20,23 +20,24 @@ private[impl] class CacheNettyClient[A, B](
   }
 
   override def get(k: A): Future[Option[B]] = allowed {
-    val req = ClientRequests.Key(handler.nextId(), RequestIds.Get, k)
+    val req = ClientRequests.Key(handler.nextId(), RequestIds.Get, k, Context.empty)
     handler.write[Value[B]](ch, req).map(r => r.v)
   }
 
   def contains(k: A): Future[Boolean] = {
-    val req = ClientRequests.Key(handler.nextId(), RequestIds.ContainsKey, k)
+    val req = ClientRequests.Key(handler.nextId(), RequestIds.ContainsKey, k, Context.empty)
     handler.write[Maybe](ch, req).map(r => r.success)
   }
 
   def versioned(k: A): Future[Option[Versioned[B]]] = {
-    val req = ClientRequests.Key(handler.nextId(), RequestIds.GetWithVersion, k)
+    val req = ClientRequests.Key(handler.nextId(), RequestIds.GetWithVersion, k, Context.empty)
     handler.write[VersionedValue[B]](ch, req).map(r => r.v)
   }
 
-  override def remove(k: A): Future[Unit] = allowed {
-    val req = ClientRequests.Key(handler.nextId(), RequestIds.Remove, k)
-    handler.write[Empty](ch, req).map(_ => ())
+  override def remove(k: A)(implicit ctx: Context): Future[Boolean] = allowed {
+    val reqid = if (ctx.contains[Version]) RequestIds.RemoveVersioned else RequestIds.Remove
+    val req = ClientRequests.Key(handler.nextId(), reqid, k, ctx)
+    handler.write[Maybe](ch, req).map(_.success)
   }
 
   override def putIfAbsent(kv: (A, B))(implicit ctx: Context): Future[Boolean] = allowed {
@@ -45,12 +46,8 @@ private[impl] class CacheNettyClient[A, B](
   }
 
   override def replace(kv: (A, B))(implicit ctx: Context = Context.empty): Future[Boolean] = allowed {
-    val req = ClientRequests.KeyValue(handler.nextId(), RequestIds.Replace, kv, ctx)
-    handler.write[Maybe](ch, req).map(_.success)
-  }
-
-  override def replaceVersioned(kv: (A, B), v: EntryVersion)(implicit ctx: Context = Context.empty): Future[Boolean] = allowed {
-    val req = ClientRequests.KeyValueVersion(handler.nextId(), RequestIds.ReplaceVersioned, kv, v, ctx)
+    val reqid = if (ctx.contains[Version]) RequestIds.ReplaceVersioned else RequestIds.Replace
+    val req = ClientRequests.KeyValue(handler.nextId(), reqid, kv, ctx)
     handler.write[Maybe](ch, req).map(_.success)
   }
 

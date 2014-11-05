@@ -5,3 +5,4 @@
 * Test passing multiple flags at the same time
 * Test putIfAbsent() can do put with lifespan/maxidle
 * Test replace() can do put with lifespan/maxidle
+* Test remove with version

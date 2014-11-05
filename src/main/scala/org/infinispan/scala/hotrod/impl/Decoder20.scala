@@ -5,7 +5,7 @@ import java.util
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.ByteToMessageDecoder
-import org.infinispan.scala.hotrod.{EntryVersion, Versioned}
+import org.infinispan.scala.hotrod.Versioned
 
 import scala.annotation.switch
 
@@ -30,13 +30,8 @@ private[impl] class Decoder20 extends ByteToMessageDecoder {
             case Constants.Success => in.readMaybeRangedBytes().map(marshaller.fromBytes)
           }
           out.add(ServerResponses.Value(respId, value))
-        case ResponseIds.Remove => out.add(ServerResponses.Empty(respId))
-        case ResponseIds.ContainsKey =>
-          val success = status match {
-            case Constants.Success => true
-            case Constants.NotFound => false
-          }
-          out.add(ServerResponses.Maybe(respId, success))
+        case ResponseIds.Remove => appendMaybeResponse(status, out, respId)
+        case ResponseIds.ContainsKey => appendMaybeResponse(status, out, respId)
         case ResponseIds.GetWithVersion =>
           val versioned = status match {
             case Constants.NotFound => None
@@ -44,7 +39,7 @@ private[impl] class Decoder20 extends ByteToMessageDecoder {
               val version = in.readLong()
               in.readMaybeRangedBytes()
                 .map(marshaller.fromBytes)
-                .map(Versioned(_, EntryVersion(version)))
+                .map(Versioned(_, version))
           }
           out.add(ServerResponses.VersionedValue(respId, versioned))
         case ResponseIds.PutIfAbsent | ResponseIds.Replace | ResponseIds.ReplaceVersioned =>
@@ -57,6 +52,14 @@ private[impl] class Decoder20 extends ByteToMessageDecoder {
         case _ =>
       }
     }
+  }
+
+  private def appendMaybeResponse(status: Byte, out: util.List[AnyRef], respId: Int): Boolean = {
+    val success = status match {
+      case Constants.Success => true
+      case Constants.NotFound => false
+    }
+    out.add(ServerResponses.Maybe(respId, success))
   }
 
 }

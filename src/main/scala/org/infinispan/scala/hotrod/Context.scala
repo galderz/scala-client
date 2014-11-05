@@ -40,7 +40,7 @@ object Context {
   }
 
   /**
-   * The empty parameter map.
+   * The empty context.
    */
   val empty: Context = Ctx(Map.empty)
 }
@@ -62,5 +62,10 @@ trait Param[P] {
   def default: P
 }
 
-case class Lifespan(expiry: Expiry)
-case class MaxIdle(expiry: Expiry)
+case class Lifespan(expiry: Expiry) extends AnyVal
+case class MaxIdle(expiry: Expiry) extends AnyVal
+
+case class Version(version: Option[Long]) extends AnyVal
+object Version {
+  def apply(version: Long): Version = Version(Some(version))
+}

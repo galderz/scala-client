@@ -10,9 +10,10 @@ trait CacheClient[A, B] {
   // TODO: Move contents to separate traits...
 
   // CRUD operations //
+
   def put(kv: (A, B))(implicit ctx: Context = Context.empty): Future[Unit]
   def get(k: A): Future[Option[B]]
-  def remove(k: A): Future[Unit]
+  def remove(k: A)(implicit ctx: Context = Context.empty): Future[Boolean]
 
   def contains(k: A): Future[Boolean]
   def versioned(k: A): Future[Option[Versioned[B]]]
@@ -21,11 +22,11 @@ trait CacheClient[A, B] {
 //  def getAndPut(kv: (A, B))(implicit ctx: Context = Context.empty): Future[B]
 //  def getAndReplace(kv: (A, B))(implicit ctx: Context = Context.empty): Future[B]
 //  def getAndRemove(k: A)(implicit ctx: Context = Context.empty): Future[B]
+//  def getAndReplaceVersioned(kv: (A, B), v: EntryVersion)(implicit ctx: Context = Context.empty): Future[B]
 
   // Conditional operations //
   def putIfAbsent(kv: (A, B))(implicit ctx: Context = Context.empty): Future[Boolean]
   def replace(kv: (A, B))(implicit ctx: Context = Context.empty): Future[Boolean]
-  def replaceVersioned(kv: (A, B), v: EntryVersion)(implicit ctx: Context = Context.empty): Future[Boolean]
 
   // Lifecycle //
   def stop(): Future[Unit]
@@ -42,3 +43,5 @@ object CacheClient {
   }
 
 }
+
+case class Versioned[B](value: B, version: Long)
